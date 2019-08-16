@@ -1,4 +1,4 @@
 .vagrant/
 .retry
 ubuntu-bionic-18.04-cloudimg-console.log
-config/config-node.yaml
+config/config-nodes.yaml
