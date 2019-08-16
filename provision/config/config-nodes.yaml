@@ -1,8 +1,0 @@
-vagrant_box: ubuntu/bionic64
-vagrant_ip: 192.168.99.
-vagrant_hostname: vagrant
-vagrant_memory: 256
-vagrant_directory: /vagrant
-vagrant_cpu: 1
-vagrant_box_check_update: false
-vagrant_domain_name: example.com
