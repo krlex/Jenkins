@@ -9,7 +9,7 @@ config_nodes = "#{dir}/provision/config/config-nodes.yaml"
 if !File.exist?("#{config_nodes}")
   raise 'Configuration file is missing!
         Please make sure that the configuration exists and try again.
-        Example >>> cp config-nodes.yaml.example config-node.yaml <<< '
+        Example >>> cp provision/config/config-nodes.yaml.example provision/config/config-nodes.yaml <<< '
 end
 
 vconfig = YAML::load_file("#{config_nodes}")
@@ -22,17 +22,17 @@ servers=[
   {
     :hostname => "nfsserver." + "#{DOMAIN}",
     :ip => "#{BRIDGE_NET}" + "150",
-    :ram => 1024
+    :ram => "#{RAM}"
   },
   {
     :hostname => "nfsclient." + "#{DOMAIN}",
     :ip => "#{BRIDGE_NET}" + "151",
-    :ram => 1024
+    :ram => "#{RAM}"
   },
   {
     :hostname => "docker." + "#{DOMAIN}",
     :ip => "#{BRIDGE_NET}" + "152",
-    :ram => 2048
+    :ram => "#{RAM}"
   },
   {
     :hostname => "jenkins." + "#{DOMAIN}",
