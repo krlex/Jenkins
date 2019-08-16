@@ -4,11 +4,14 @@
 
 require 'yaml'
 dir = File.dirname(File.expand_path(__FILE__))
-config_nodes = "#{dir}/artefacts/config/config_multi-nodes.yaml"
+config_nodes = "#{dir}/provision/config/config-nodes.yaml"
 
 if !File.exist?("#{config_nodes}")
-  raise 'Configuration file is missing! Please make sure that the configuration exists and try again.'
+  raise 'Configuration file is missing!
+        Please make sure that the configuration exists and try again.
+        Example >>> cp config-nodes.yaml.example config-node.yaml <<< '
 end
+
 vconfig = YAML::load_file("#{config_nodes}")
 
 BRIDGE_NET = vconfig['vagrant_ip']
@@ -45,9 +48,9 @@ servers=[
     :hostname => "ansible." + "#{DOMAIN}",
     :ip => "#{BRIDGE_NET}" + "155",
     :ram => "#{RAM}",
-	:install_ansible => "./artefacts/scripts/install_ansible.sh",
-	:config_ansible => "./artefacts/scripts/config_ansible.sh",
-	:source =>  "./artefacts/.",
+	:install_ansible => "./provision/scripts/install_ansible.sh",
+	:config_ansible => "./provision/scripts/config_ansible.sh",
+	:source =>  "./provision/.",
 	:destination => "/home/vagrant/"
   }
 ]
