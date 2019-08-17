@@ -1,0 +1,48 @@
+---
+
+- name: Create mountable dir
+  file:
+    path: "{{ nfsexport }}"
+    state: directory
+    mode: 777
+    owner: root
+    group: root
+  tags: nfs-server
+
+- name: make sure the mount drive has a filesystem
+  filesystem:
+    fstype: ext4
+    dev: "{{ mountable_share_drive | default('/dev/sda1') }}"
+  tags: nfs-server
+
+- name: set mountpoints
+  mount:
+    name: "{{ nfsexport }}"
+    src: "{{ mountable_share_drive | default('/dev/sda1') }}"
+    fstype: auto
+    opts: defaults,nobootwait
+    dump: 0
+    passno: 2
+    state: mounted
+  tags: nfs-server
+
+- name: Ensure NFS utilities are installed.
+  apt:
+    name: ['nfs-common','nfs-kernel-server']
+    state: present
+    update_cache: yes
+  tags: nfs-server
+
+- name: copy /etc/exports
+  template:
+    src: "~/artifacts/templates/exports.j2"
+    dest: "/etc/exports"
+    owner: root
+    group: root
+  tags: nfs-server
+
+- name: restart nfs server
+  service:
+    name: nfs-kernel-server
+    state: restarted
+  tags: nfs-server

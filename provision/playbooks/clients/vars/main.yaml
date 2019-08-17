@@ -1,0 +1,5 @@
+---
+
+  nfsserver: 192.168.99.150
+  nfs_mountpoint: /nfs
+  nfsexport: /share

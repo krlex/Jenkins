@@ -1,0 +1,4 @@
+---
+
+ansible_distribution_release: trusty
+theuser: vagrant

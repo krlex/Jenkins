@@ -1,0 +1,4 @@
+---
+
+  mountable_share_drive: '/dev/sda1'
+  nfsexport: /share

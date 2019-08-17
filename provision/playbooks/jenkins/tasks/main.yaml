@@ -1,0 +1,41 @@
+---
+
+- name: Ensure the jenkins apt repository key is installed
+  become: yes
+  apt_key:
+    url: https://pkg.jenkins.io/debian-stable/jenkins.io.key
+    state: present
+
+- name: Ensure the repository is configured
+  become: yes
+  apt_repository:
+    repo: deb https://pkg.jenkins.io/debian-stable binary/
+    state: present
+
+- name: Install Jenkins
+  become: yes
+  apt:
+    name: jenkins
+    state: present
+
+- name: Start & Enable Jenkins
+  become: yes
+  service:
+    name: jenkins
+    state: started
+
+- name: Sleep for 30 seconds and continue with play
+  become: yes
+  wait_for:
+    timeout: 30
+
+- name: Get init password Jenkins
+  become: yes
+  shell: cat /var/lib/jenkins/secrets/initialAdminPassword
+  changed_when: false
+  register: result
+
+- name: Print init password Jenkins
+  become: yes
+  debug:
+    var: result.stdout
