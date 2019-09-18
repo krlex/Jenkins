@@ -3,9 +3,9 @@
 - name: Jenkins with docker
   hosts: all
   roles:
-    - client
+    - clients
     - server
-    - java
-    - gitlab
-    - jenkins
     - docker
+    - java
+    - jenkins
+    - gitlab
