@@ -23,7 +23,7 @@ sudo apt-get -y install default-jre > /dev/null 2>&1
 sudo apt-get -y install default-jdk > /dev/null 2>&1
 
 echo "Install npm and yarn"
-sudo apt-get install yarn nodejs -y > /dev/null 2>&1
+sudo apt-get install -y yarn nodejs > /dev/null 2>&1
 
 echo "Installing git"
 sudo apt-get -y install git > /dev/null 2>&1
@@ -44,6 +44,25 @@ sudo apt-get -y install jenkins > /dev/null 2>&1
 sudo service jenkins start
 
 sleep 1m
+
+echo "Installing tomcat 8.5.39"
+sudo apt install -y tomcat8 > /dev/null 2>&1
+
+echo "Downloading and Installing Maven"
+echo "Downloading now ....."
+sudo get https://www-us.apache.org/dist/maven/maven-3/3.6.0/binaries/apache-maven-3.6.0-bin.tar.gz -P /tmp > /dev/null 2>&1
+
+echo "Starting installing..."
+sudo tar xf /tmp/apache-maven-*.tar.gz -C /opt > /dev/null 2>&1
+sudo ln -s /opt/apache-maven-3.6.0 /opt/maven
+echo "export JAVA_HOME=/usr/lib/jvm/default-java" > /etc/profile.d/maven.sh
+echo "export M2_HOME=/opt/maven" >> /etc/profile.d/maven.sh
+echo "export MAVEN_HOME=/opt/maven" >> /etc/profile.d/maven.sh
+echo "export PATH=${M2_HOME}/bin:${PATH}" >> /etc/profile.d/maven.sh
+sudo chmod +x /etc/profile.d/maven.sh
+source /etc/profile.d/maven.sh
+echo "DONE with Installation of maven"
+
 
 echo "Password is:"
 JENKINSPWD=$(sudo cat /var/lib/jenkins/secrets/initialAdminPassword)
