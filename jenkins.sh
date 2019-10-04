@@ -61,6 +61,7 @@ echo "export MAVEN_HOME=/opt/maven" >> /etc/profile.d/maven.sh
 echo "export PATH=${M2_HOME}/bin:${PATH}" >> /etc/profile.d/maven.sh
 sudo chmod +x /etc/profile.d/maven.sh
 source /etc/profile.d/maven.sh
+sudo apt install maven > /dev/null 2>&1
 echo "DONE with Installation of maven"
 
 
