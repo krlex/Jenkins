@@ -47,6 +47,7 @@ sleep 1m
 
 echo "Installing tomcat 8.5.39"
 sudo apt install -y tomcat8 > /dev/null 2>&1
+sudo mkdir /var/share/tomcat8/logs
 
 echo "Downloading and Installing Maven"
 echo "Downloading now ....."
