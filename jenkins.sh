@@ -41,13 +41,15 @@ sudo service docker start
 
 echo "Installing jenkins"
 sudo apt-get -y install jenkins > /dev/null 2>&1
+sed -i 's/HTTP_PORT=8080/HTTP_PORT=8090/g' /etc/default/jenkins
 sudo service jenkins start
 
 sleep 1m
 
 echo "Installing tomcat 8.5.39"
 sudo apt install -y tomcat8 > /dev/null 2>&1
-sudo mkdir /var/share/tomcat8/logs
+sudo service tomcat8 start
+sudo mkdir -p /var/share/tomcat8/logs
 sudo /var/share/tomcat8/bin/startup.sh
 
 echo "Downloading and Installing Maven"
