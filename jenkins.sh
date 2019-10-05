@@ -75,4 +75,4 @@ echo $JENKINSPWD
 
 echo "URL address"
 URL=$(sudo ip -4 addr show enp0s8 | grep -oP '(?<=inet\s)\d+(\.\d+){3}')
-echo "http://"$URL":8080"
+echo "http://"$URL":8090"
