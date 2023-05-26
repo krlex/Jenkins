@@ -4,9 +4,12 @@ echo "Pre-Install common"
 sudo apt-get -y install apt-transport-https ca-certificates curl gnupg-agent software-properties-common gcc g++ make tmux python3-pip > /dev/null 2>&1
 
 echo "Adding apt-keys"
-wget -q -O - https://pkg.jenkins.io/debian/jenkins-ci.org.key | sudo apt-key add -
-echo deb http://pkg.jenkins.io/debian-stable binary/ | sudo tee /etc/apt/sources.list.d/jenkins.list
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+curl -fsSL https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key | sudo tee \
+  /usr/share/keyrings/jenkins-keyring.asc > /dev/null
+echo deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] \
+  https://pkg.jenkins.io/debian-stable binary/ | sudo tee \
+  /etc/apt/sources.list.d/jenkins.list > /dev/null
+bash <(curl -sL https://raw.githubusercontent.com/krlex/docker-installation/master/install.sh) > /dev/null 2>&1
 curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash - /dev/null 2>&1
 curl -sL https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
 echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
@@ -16,7 +19,7 @@ echo "Installation Ansible"
 pip3 install -y ansible > /dev/null 2>&1
 
 echo "Updating apt-get"
-sudo apt-get -qq update
+sudo apt-get -qq update > /dev/null 2>&1
 
 echo "Installing default-java"
 sudo apt-get -y install default-jre > /dev/null 2>&1
@@ -41,7 +44,7 @@ sudo service docker start
 
 echo "Installing jenkins"
 sudo apt-get -y install jenkins > /dev/null 2>&1
-sed -i 's/HTTP_PORT=8080/HTTP_PORT=8090/g' /etc/default/jenkins
+sed -i 's/HTTP_PORT=8080/HTTP_PORT=8080/g' /etc/default/jenkins
 sudo service jenkins start
 
 sleep 1m
