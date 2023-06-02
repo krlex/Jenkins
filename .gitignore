@@ -1,3 +1,5 @@
 .vagrant/
 .retry
 *.log
+.env
+jenkins_compose/
