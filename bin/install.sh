@@ -70,6 +70,8 @@ sudo chmod +x /etc/profile.d/maven.sh
 source /etc/profile.d/maven.sh
 sudo apt install maven > /dev/null 2>&1
 echo "DONE with Installation of maven"
+sudo usermod -aG docker jenkins
+echo "Adding User Jenkins in docker group"
 
 
 echo "Password is:"
