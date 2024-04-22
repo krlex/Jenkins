@@ -1,83 +1,127 @@
-#!/usr/bin/env bash
+#!/bin/bash
+#
 
-echo "Pre-Install common"
-sudo apt-get -y install apt-transport-https ca-certificates curl gnupg-agent software-properties-common gcc g++ make tmux python3-pip > /dev/null 2>&1
+export BIN_DIR=`dirname $0`
+export PROJECT_ENV="${BIN_DIR}/../"
 
-echo "Adding apt-keys"
-curl -fsSL https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key | sudo tee \
-  /usr/share/keyrings/jenkins-keyring.asc > /dev/null
-echo deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] \
-  https://pkg.jenkins.io/debian-stable binary/ | sudo tee \
-  /etc/apt/sources.list.d/jenkins.list > /dev/null
-bash <(curl -sL https://raw.githubusercontent.com/krlex/docker-installation/master/install.sh) > /dev/null 2>&1
-curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash - /dev/null 2>&1
-curl -sL https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
-echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
+# Function to install dependencies for Debian/Ubuntu
+install_dependencies_debian() {
+    echo "Installing dependencies for Debian/Ubuntu..."
+    sudo apt-get update
+    sudo apt-get install -y openjdk-17-jdk
+}
 
+# Function to install dependencies for Fedora/CentOS
+install_dependencies_fedora() {
+    echo "Installing dependencies for Fedora/CentOS..."
+    sudo yum update
+    sudo yum install -y java-17-openjdk-devel
+}
 
-echo "Installation Ansible"
-pip3 install -y ansible > /dev/null 2>&1
+# Function to install Docker and Docker Compose
+install_docker_and_compose() {
+    echo "Installing Docker and Docker Compose..."
 
-echo "Updating apt-get"
-sudo apt-get -qq update > /dev/null 2>&1
+    # Install Docker
+    curl -fsSL https://get.docker.com -o get-docker.sh
+    sudo sh get-docker.sh
+    sudo usermod -aG docker $USER
 
-echo "Installing default-java"
-sudo apt-get -y install default-jre > /dev/null 2>&1
-sudo apt-get -y install default-jdk > /dev/null 2>&1
+    # Install Docker Compose
+    sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+    sudo chmod +x /usr/local/bin/docker-compose
+    sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
+}
 
-echo "Install npm and yarn"
-sudo apt-get install -y yarn nodejs > /dev/null 2>&1
+# Function to install Jenkins without Docker
+install_jenkins_without_docker() {
+    if [ "$distribution" == "debian" ]; then
+        install_dependencies_debian
+    elif [ "$distribution" == "fedora" ]; then
+        install_dependencies_fedora
+    fi
+    
+    echo "Installing Jenkins without Docker..."
+    wget -q -O - https://pkg.jenkins.io/debian-stable/jenkins.io.key | sudo apt-key add - >/dev/null 2>&1
+    sudo sh -c 'echo deb http://pkg.jenkins.io/debian-stable binary/ > /etc/apt/sources.list.d/jenkins.list'
+    sudo apt-get update
+    sudo apt-get install -y jenkins
+    sudo groupadd docker
+    sudo usermod -aG docker jenkins
+}
 
-echo "Installing git"
-sudo apt-get -y install git > /dev/null 2>&1
+# Function to install Jenkins with Docker
+install_jenkins_with_docker() {
+    # Check if Docker and Docker Compose are installed
+    if ! command -v docker &>/dev/null || ! command -v docker-compose &>/dev/null; then
+        install_docker_and_compose
+    fi
+    
+    echo "Installing Jenkins with Docker..."
+    # Placeholder for Docker Compose commands
+    sudo docker-compose -f $PROJECT_ENV/docker-compose.yml up -d
+}
 
-echo "Installing git-ftp"
-sudo apt-get -y install git-ftp > /dev/null 2>&1
+# Function to output initial admin password
+output_initial_password() {
+    echo "Initial admin password:"
+    sudo docker exec $(sudo docker ps -aqf "name=jenkins") cat /var/jenkins_home/secrets/initialAdminPassword
+}
 
-echo "Installing docker"
-sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" > /dev/null 2>&1
-sudo apt-get update > /dev/null 2>&1
-sudo apt-get -y install docker-ce docker-ce-cli containerd.io > /dev/null 2>&1
+# Main script
 
-echo "Enable and starting Docker"
-sudo service docker start
+# Prompt user for options
+options=("Docker" "Docker Compose" "Tomcat" "Maven" "Yarn" "NPM" "Jenkins")
+selected=()
 
-echo "Installing jenkins"
-sudo apt-get -y install jenkins > /dev/null 2>&1
-sed -i 's/HTTP_PORT=8080/HTTP_PORT=8080/g' /etc/default/jenkins
-sudo service jenkins start
+echo "List of available options:"
+for (( i=0; i<${#options[@]}; i++ )); do
+    echo "$((i+1)). ${options[$i]}"
+done
 
-sleep 1m
+# Prompt user for selections
+read -p "Enter the numbers of the options you want to install (e.g., '1 3 5'): " selections
+for selection in $selections; do
+    index=$((selection - 1))
+    if [ $index -ge 0 ] && [ $index -lt ${#options[@]} ]; then
+        selected+=("${options[$index]}")
+    else
+        echo "Invalid option number: $selection"
+    fi
+done
 
-echo "Installing tomcat 8.5.39"
-sudo apt install -y tomcat8 > /dev/null 2>&1
-sudo service tomcat8 start
-sudo mkdir -p /var/share/tomcat8/logs
-sudo /var/share/tomcat8/bin/startup.sh
+# Detect the Linux distribution
+if [ -f /etc/debian_version ]; then
+    distribution="debian"
+elif [ -f /etc/redhat-release ]; then
+    distribution="fedora"
+else
+    echo "Unsupported Linux distribution."
+    exit 1
+fi
 
-echo "Downloading and Installing Maven"
-echo "Downloading now ....."
-sudo get https://www-us.apache.org/dist/maven/maven-3/3.6.0/binaries/apache-maven-3.6.0-bin.tar.gz -P /tmp > /dev/null 2>&1
+# If Jenkins selected, prompt for installation method
+if [[ " ${selected[@]} " =~ " Jenkins " ]]; then
+    echo "Select Jenkins installation method:"
+    echo "1. Without Docker"
+    echo "2. With Docker Compose"
+    read -p "Enter the number of the installation method: " jenkins_installation_option
+    case "$jenkins_installation_option" in
+        1 )
+            install_jenkins_without_docker
+            ;;
+        2 )
+            install_jenkins_with_docker
+            ;;
+        * )
+            echo "Invalid option. Jenkins installation aborted."
+            ;;
+    esac
+fi
 
-echo "Starting installing..."
-sudo tar xf /tmp/apache-maven-*.tar.gz -C /opt > /dev/null 2>&1
-sudo ln -s /opt/apache-maven-3.6.0 /opt/maven
-echo "export JAVA_HOME=/usr/lib/jvm/default-java" > /etc/profile.d/maven.sh
-echo "export M2_HOME=/opt/maven" >> /etc/profile.d/maven.sh
-echo "export MAVEN_HOME=/opt/maven" >> /etc/profile.d/maven.sh
-echo "export PATH=${M2_HOME}/bin:${PATH}" >> /etc/profile.d/maven.sh
-sudo chmod +x /etc/profile.d/maven.sh
-source /etc/profile.d/maven.sh
-sudo apt install maven > /dev/null 2>&1
-echo "DONE with Installation of maven"
-sudo usermod -aG docker jenkins
-echo "Adding User Jenkins in docker group"
-
-
-echo "Password is:"
-JENKINSPWD=$(sudo cat /var/lib/jenkins/secrets/initialAdminPassword)
-echo $JENKINSPWD
-
-echo "URL address"
-URL=$(sudo ip -4 addr show enp0s8 | grep -oP '(?<=inet\s)\d+(\.\d+){3}')
-echo "http://"$URL":8090"
+# If Jenkins selected and installed with Docker, output initial admin password
+if [[ " ${selected[@]} " =~ " Jenkins " ]] && [[ " ${selected[@]} " =~ " Docker Compose " ]]; then
+    echo "Waiting for Jenkins container to initialize..."
+    sleep 30 # Adjust as needed
+    output_initial_password
+fi

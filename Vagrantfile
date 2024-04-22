@@ -1,6 +1,6 @@
 Vagrant.configure('2') do |config|
   config.vm.box = 'ubuntu/jammy64'
-  config.vm.network 'forwarded_port', guest: 8090, host: 8090
+  config.vm.network 'forwarded_port', guest: 8080, host: 8080
   config.vm.network 'private_network', ip: '192.168.50.4'
 
   config.vm.provider 'virtualbox' do |vb|
@@ -9,7 +9,7 @@ Vagrant.configure('2') do |config|
     vb.memory = '2048'
   end
 
-  config.vm.provision 'shell' do |shell|
-    shell.path = 'bin/install.sh'
-  end
+  # config.vm.provision 'shell' do |shell|
+  #   shell.path = 'bin/install.sh'
+  # end
 end
